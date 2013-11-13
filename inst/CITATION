@@ -1,0 +1,37 @@
+if (!exists("meta") || is.null(meta)) meta <- packageDescription("pawacc")
+
+citHeader("To cite package", sQuote(meta$Package), "in publications use:")
+
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+vers <- paste("R package version", meta$Version)
+
+citEntry(
+  entry = "Manual",
+  title ="pawacc: {P}hysical activity with accelerometers",
+  author = personList(as.person("M. Geraci")),
+  year = year,
+  note = vers,
+  url = "http://CRAN.R-project.org/package=pawacc",
+  textVersion  = paste0("Geraci M (",
+                     year,
+                     "). pawacc: Physical activity with accelerometers. ",
+                     vers, ". Available at http://CRAN.R-project.org/package=pawacc", ".")
+	)
+
+citEntry(
+  entry = "TechReport",
+  title ="Technical report on accelerometry data processing in the {M}illennium {C}ohort {S}tudy",
+  author = personList(as.person("M. Geraci"),as.person("C. Rich"),as.person("F. Sera"),as.person("M. Cortina-Borja"),as.person("L. J. Griffiths"),as.person("C. Dezateux")),
+  year = "2012",
+  address = "London, UK",
+  institution = "University College London",
+  url = "http://discovery.ucl.ac.uk/1361699",
+  textVersion  = paste0(
+  "Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012).",
+  "Technical report on accelerometry data processing in the Millennium Cohort Study.",
+  "London, UK: University College London. ",
+  "Available at http://discovery.ucl.ac.uk/1361699")
+)
+
+
+citFooter("A BibTeX entry for LaTeX users is toBibtex(citation('pawacc'))")

@@ -1,0 +1,15 @@
+Changes in pawacc
+
+=============================================
+
+Version 1.0 (September 5, 2012)
+
+- Package pawacc on R-Forge
+
+=============================================
+
+Version 1.1 (November 13, 2013)
+
+- Package pawacc on CRAN
+- Fixed bug in function dateSummary
+- Added functions: plot.gt1m, markbouts.accfile, markbouts.acclist
