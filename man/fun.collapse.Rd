@@ -1,5 +1,5 @@
-\name{collapse.fun}
-\alias{collapse.fun}
+\name{fun.collapse}
+\alias{fun.collapse}
 
 \title{
 Summary statistics
@@ -8,7 +8,7 @@ Summary statistics
 Accessory function for collapsing accelerometer files.
 }
 \usage{
-collapse.fun(x, fun = list(mean = function(x) mean(x, na.rm = TRUE),
+fun.collapse(x, fun = list(mean = function(x) mean(x, na.rm = TRUE),
 median = function(x) median(x, na.rm = TRUE),
 sd = function(x) sd(x, na.rm = TRUE)))
 }

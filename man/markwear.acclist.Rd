@@ -1,6 +1,7 @@
 \name{markwear.acclist}
-\alias{markwear.acclist}
+\alias{markwear}
 \alias{markwear.accfile}
+\alias{markwear.acclist}
 
 \title{
 Classify wear and non-wear time
@@ -9,8 +10,12 @@ Classify wear and non-wear time
 This functions identifies sequences of zeroes of a given length to classify wear and non-wear time in accelerometer data files.
 }
 \usage{
-markwear.acclist(object, value, nz = 0, keep.error = FALSE)
-markwear.accfile(object, value, nz = 0, keep.error = FALSE)
+markwear(object, value, which = "counts", rescale.epoch = 60,
+	nz = 0, keep.error = FALSE)
+\method{markwear}{acclist}(object, value, which = "counts", rescale.epoch = 60,
+	nz = 0, keep.error = FALSE)
+\method{markwear}{accfile}(object, value, which = "counts", rescale.epoch = 60,
+	nz = 0, keep.error = FALSE)
 }
 
 \arguments{
@@ -20,17 +25,23 @@ an object of class \code{acclist} or \code{accfile}.
   \item{value}{
 the length of the time window (in minutes) which contains zero values.
 }
+  \item{which}{
+either 'counts' or 'steps' for \code{gt1m} files or one of \code{c('x','y','z','steps')} for \code{gt3x} files.
+}
+  \item{rescale.epoch}{
+epoch expressed in the same unit as acceleromenter epoch to determine multiplier to rescale \code{value} (default is 60). See details.
+}
   \item{nz}{
 the length of the time window (in minutes) of non-zero value sequences allowed between every two sequences of zero values.
 }
 
   \item{keep.error}{
-logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorCts}} will be replaced by NAs.
+logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
 
 }
 \details{
-Currently, this function is implemented for class \code{gt1m} only. The accelerometer epoch is assumed to be expressed in seconds. Therefore \code{value} is automatically rescaled to \code{value * 60/object$info$epoch}.
+The accelerometer epoch is assumed to be expressed in seconds. Therefore \code{value} is automatically rescaled to \code{value * 60/object$info$epoch}.
 }
 
 \value{
@@ -51,29 +62,32 @@ Marco Geraci
 
 \examples{
 
+\dontrun{
+
 data(gt1m_sample)
 
 # 20-minute threshold
-wear <- markwear.accfile(gt1m_sample, value = 20)
-\dontrun{
+wear <- markwear(gt1m_sample, value = 20)
 > table(wear)
  wear
  Non-wear     Wear 
     27572    17338 
 }
 
-# lower threshold
-wear <- markwear.accfile(gt1m_sample, value = 5)
 \dontrun{
+
+# lower threshold
+wear <- markwear(gt1m_sample, value = 5)
 > table(wear)
  wear
  Non-wear     Wear 
     30188    14722 
 }
 
+\dontrun{
+
 # allow for some non-zero values within a 20-minute window
 wear <- markwear.accfile(gt1m_sample, value = 20, nz = 2)
-\dontrun{
 > table(wear)
  wear
  Non-wear     Wear 
@@ -84,3 +98,4 @@ wear <- markwear.accfile(gt1m_sample, value = 20, nz = 2)
 
 \keyword{wear time}
 \keyword{ Actigraph GT1M }
+\keyword{ Actigraph GT3X }

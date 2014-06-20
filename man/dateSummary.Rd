@@ -30,7 +30,7 @@ epoch expressed in the same unit as acceleromenter's epoch to determine minutes 
 }
 
   \item{keep.error}{
-logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorCts}} will be replaced by NAs.
+logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
 }
 

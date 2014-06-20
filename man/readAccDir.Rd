@@ -25,7 +25,7 @@ accelerometer model, either 'gt1m' or 'gt3x'.
 file extension without '.' (default is 'dat').
 }
   \item{counts.pos}{
-position of first measurement of accelerometer counts. See \code{\link{gt1m.accfile}} for details.
+position of first measurement of accelerometer counts. See \code{\link{gt1mAccFile}} for details.
 }
   \item{tz}{
 a character string specifying the timezone to be used for the conversion (see \code{\link{strptime}}).
@@ -53,7 +53,7 @@ not used.
 This is a wrapper function. It reads raw accelerometer files stored in one directory. The argument \code{ext} specifies the extension of the files to look for (e.g., 'dat' or 'txt'). Files with different extension and/or sub-directories are ignored. The data format must be consistent with the specification of \code{model}.
 }
 \value{
-Either a set of \code{.Rdata} files or a \code{\link{list}} of objects of class \code{accfile}. In both cases, each accelerometer data file is stored as an object of type \code{list} and labelled using the data file name. See \code{\link{gt1m.accfile}} or \code{\link{gt3x.accfile}} for details.
+Either a set of \code{.Rdata} files or a \code{\link{list}} of objects of class \code{accfile}. In both cases, each accelerometer data file is stored as an object of type \code{list} and labelled using the data file name. See \code{\link{gt1mAccFile}} or \code{\link{gt3xAccFile}} for details.
 
 }
 
@@ -67,7 +67,7 @@ Marco Geraci
 
 
 \seealso{
-\code{\link{gt1m.accfile}}, \code{\link{gt3x.accfile}}, \code{\link{gt1m.acclist}}, \code{\link{gt3x.acclist}}
+\code{\link{gt1mAccFile}}, \code{\link{gt3xAccFile}}, \code{\link{gt1mAccDir}}, \code{\link{gt3xAccDir}}
 }
 
 \keyword{ accelerometer }

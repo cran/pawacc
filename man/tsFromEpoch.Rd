@@ -35,7 +35,7 @@ Marco Geraci
 
 
 \seealso{
-\code{\link{gt1m.accfile}}
+\code{\link{gt1mAccFile}}
 }
 
 \examples{

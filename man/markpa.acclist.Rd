@@ -1,6 +1,7 @@
 \name{markpa.acclist}
-\alias{markpa.acclist}
+\alias{markpa}
 \alias{markpa.accfile}
+\alias{markpa.acclist}
 
 \title{
 Classify mode of physical activity
@@ -9,9 +10,11 @@ Classify mode of physical activity
 This function identifies modes of physical activity using user-defined breakpoints for accelerometer counts.
 }
 \usage{
-markpa.acclist(object, value, rescale.epoch = 60, labels = NULL,
+markpa(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
 extreme = NULL, keep.error = FALSE)
-markpa.accfile(object, value, rescale.epoch = 60, labels = NULL,
+\method{markpa}{acclist}(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
+extreme = NULL, keep.error = FALSE)
+\method{markpa}{accfile}(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
 extreme = NULL, keep.error = FALSE)
 }
 
@@ -21,6 +24,9 @@ an object of class \code{acclist} or \code{accfile}.
 }
   \item{value}{
 vector of breaks to define physical activity modes. The lowest breakpoint must be 0.
+}
+  \item{which}{
+either 'counts' or 'steps' for \code{gt1m} files or one of \code{c('x','y','z','steps')} for \code{gt3x} files.
 }
   \item{rescale.epoch}{
 epoch expressed in the same unit as acceleromenter epoch to determine multiplier to rescale \code{value} (default is 60). See details.
@@ -33,7 +39,7 @@ if \code{value} includes a threshold for defining the category of extreme values
 }
 
   \item{keep.error}{
-logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorCts}} will be replaced by NAs.
+logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
 
 }
@@ -42,8 +48,6 @@ logical flag. If \code{FALSE} (default) data errors as identified by \code{\link
 Breakpoints are specified as counts per seconds using \code{value}. If the epoch used for \code{value} is different from the accelerometer epoch, a rescaling is applied. E.g., if epoch is 15 seconds and breakpoints are expressed as counts per 60 seconds, \code{value} is divided by 60/15 = 4. There can be \emph{n} physical activity modes at maximum, where \emph{n} is the length of \code{value}. 
 
 The argument \code{extreme} is \code{NULL} by default. Use either `last' to select the last category or the category number 1 to \emph{n}.
-
-Currently, this function is implemented for class \code{gt1m} only.
 }
 
 \value{
@@ -60,3 +64,4 @@ Marco Geraci
 
 \keyword{physical activity mode}
 \keyword{ Actigraph GT1M }
+\keyword{ Actigraph GT3X }

@@ -1,6 +1,5 @@
-\name{errorCts}
-\alias{errorCts}
-\alias{errorSteps}
+\name{errorChk}
+\alias{errorChk}
 
 
 \title{
@@ -10,12 +9,12 @@ Perform error checking
 These functions look for errors in the data. A code is returned.
 }
 \usage{
-errorCts(x, fault = 32767)
+errorChk(x, fault = 32767)
 }
 
 \arguments{
   \item{x}{
-accelrometer counts or steps.
+vector of accelerometer data.
 }
   \item{fault}{
 numerical value that indicates voltage signal saturation (temporarily used for both accelerometer counts and steps).
@@ -40,8 +39,9 @@ Marco Geraci
 
 
 \seealso{
-\code{\link{gt1m.accfile}}
+\code{\link{gt1mAccFile}}, \code{\link{gt3xAccFile}}
 }
 
 \keyword{ error }
 \keyword{ Actigraph GT1M }
+\keyword{ Actigraph GT3X }

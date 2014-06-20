@@ -13,3 +13,16 @@ Version 1.1 (November 13, 2013)
 - Package pawacc on CRAN
 - Fixed bug in function dateSummary
 - Added functions: plot.gt1m, markbouts.accfile, markbouts.acclist
+
+=============================================
+
+Version 1.2 (June 20, 2014)
+
+- improved general design of functions
+- added progress bars for loops
+- solved warning message 'In `$.data.frame`(info, n) : Name partially matched in data frame'
+- renamed 'collapse.fun' as 'fun.collapse'
+- renamed 'agg.accfile' as 'aggAccFile'
+- renamed 'gt1m.accfile', 'gt3x.accfile', 'gt1m.acclist', 'gt3x.acclist' as 'gt1mAccFile', 'gt3xAccFile', 'gt1mAccDir', 'gt3xAccDir'
+- defined generic functions 'markwear', 'markpa', 'markbouts', 'collapse'
+- plot function for 'gt3x' files

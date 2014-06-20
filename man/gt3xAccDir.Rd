@@ -1,5 +1,5 @@
-\name{gt3x.acclist}
-\alias{gt3x.acclist}
+\name{gt3xAccDir}
+\alias{gt3xAccDir}
 
 \title{
 Read list of accelerometer files
@@ -8,7 +8,7 @@ Read list of accelerometer files
 This function reads a list of Actigraph GT3X accelerometer files.
 }
 \usage{
-gt3x.acclist(accFileList, save, compress = "gzip",
+gt3xAccDir(accFileList, save, compress = "gzip",
 	compression_level = 6)
 }
 

@@ -1,4 +1,5 @@
 \name{plot.gt1m}
+\alias{plot.gt3x}
 \alias{plot.gt1m}
 
 
@@ -7,12 +8,14 @@ Plot accelerometer file
 }
 
 \description{
-This function plots data from an Actigraph GT1M accelerometer file.
+Thes functions plot data from Actigraph GT1M and GT3X accelerometer files.
 }
 
 \usage{
 \method{plot}{gt1m}(x, y = NULL, xlab, ylab, main,
 keep.error = TRUE, which = "counts", select = 1,...)
+\method{plot}{gt3x}(x, y = NULL, xlab, ylab, main,
+keep.error = TRUE, which = "x", select = 1,...)
 }
 
 \arguments{
@@ -23,19 +26,19 @@ an object of class \code{gt1m}. It can be either \code{accfile} or \code{acclist
 ignored.
 }
   \item{xlab}{
-x-axis label. If missing, 'Timestamp'.
+x-axis label (optional).
 }
   \item{ylab}{
-y-axis label. If missing, 'counts' or 'steps'.
+y-axis label (optional).
 }
   \item{main}{
-main title. If missing, 'fileid' from \code{x$info}.
+main title (optional).
 }
   \item{keep.error}{
-logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorCts}} will be replaced by NAs.
+logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
   \item{which}{
-either 'counts' or 'steps'.
+either 'counts' or 'steps' for \code{gt1m} files or one of \code{c('x','y','z','steps')} for \code{gt3x} files.
 }
   \item{select}{
 numeric. If \code{class(x)} is \code{acclist}, this argument specifies the corresponding position of the accelerometer file in the \code{list} (first file by default).
@@ -59,14 +62,19 @@ Marco Geraci
 }
 
 \seealso{
-\code{\link{plot}}, \code{\link{par}}, \code{\link{gt1m.accfile}}, \code{\link{gt1m.acclist}}
+\code{\link{plot}}, \code{\link{par}}, \code{\link{gt1mAccFile}}, \code{\link{gt1mAccDir}}
 }
 
 \examples{
 data(gt1m_sample)
+data(gt3x_sample)
+
 
 plot(gt1m_sample, which = "counts")
 plot(gt1m_sample, which = "steps")
+plot(gt3x_sample, which = "x")
+plot(gt3x_sample, which = "steps")
+
 
 }
 

@@ -1,2 +1,10 @@
 exportPattern("^[^\\.]")
 import(SparseM)
+
+S3method(markwear, accfile)
+S3method(markwear, acclist)
+S3method(markpa, accfile)
+S3method(markpa, acclist)
+S3method(markbouts, accfile)
+S3method(markbouts, acclist)
+S3method(collapse, accfile)

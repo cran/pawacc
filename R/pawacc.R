@@ -1,6 +1,6 @@
 ############################################################################
-# R functions for pawacc 1.1
-# Marco Geraci, 13 November 2013
+# R functions for pawacc 1.2
+# Marco Geraci, 20 June 2014
 ############################################################################
 
 # startup message
@@ -11,10 +11,18 @@
 		packageDescription(pkg)$Version, pkg))
 }
 
+# Generics
+
+markwear <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE) UseMethod("markwear")
+markpa <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE) UseMethod("markpa")
+markbouts <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE) UseMethod("markbouts")
+collapse <- function(...) UseMethod("collapse")
+
 # Read accelerometer files
 
 readAccDir <- function(path, model, ext = "dat", counts.pos = 1, tz = "Europe/London", sparse = FALSE, fault = 32767, save = TRUE, compress = "gzip", compression_level = 6, ...){
 
+ptm <- proc.time()
  
 # read directory content
 FILES <- list.files(path, all.files = FALSE, ...)
@@ -29,7 +37,7 @@ check <- substr(FILES, nChars - 2, nChars) == ext
 	if(!all(check))
 		warning("Some files do not match specified extension 'ext' and have been ignored")
 	if(sum(check) == 1)
-		stop("Directory specified contains 1 file. Please see '?gt1m.accfile' instead")
+		stop("Directory specified contains 1 file. Please see '?gt1mAccFile' instead")
 	if(sum(check) == 0)
 		stop("Invalid directory")
 
@@ -41,16 +49,16 @@ FILEID <- unlist(strsplit(FILES, paste(".", ext, sep = "")))
 accFileList <- list(FILES = FILES, FILEID = FILEID, path = path, model = model, counts.pos = counts.pos, tz = tz, sparse = sparse, fault = fault)
 
 out <- switch(model,
-		gt1m = gt1m.acclist(accFileList, save, compress = compress, compression_level = compression_level),
-		gt3x = gt3x.acclist(accFileList, save, compress = compress, compression_level = compression_level))
+		gt1m = gt1mAccDir(accFileList, save, compress = compress, compression_level = compression_level),
+		gt3x = gt3xAccDir(accFileList, save, compress = compress, compression_level = compression_level))
 
+cat("Total elapsed time", (proc.time() - ptm)[3], "seconds\n")
+		
 return(out)		
 		
 }
 
-
-
-gt1m.acclist <- function(accFileList, save, compress = "gzip", compression_level = 6){
+gt1mAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6){
 
 FILES <- accFileList$FILES
 FILEID <- accFileList$FILEID
@@ -104,23 +112,28 @@ tz <- accFileList$tz
 
 summaryFile <- data.frame(fileid = "", serial = "", nobs = 0, epoch = 0, mode = NA, ts_start = as.POSIXlt("2000/01/01 00:00:00"), tz = "", voltage = NA, ts_dl = as.POSIXlt("2000/01/01 00:00:00"), stringsAsFactors = FALSE)
 
+pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 	if(!is.null(saveDir)){
 		for(i in 1:N){
-			object <- gt1m.accfile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
+			object <- gt1mAccFile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
 			summaryFile[i,] <- object$info
 			assign(x = FILEID[i], value = object, envir = newEnv)
 			save(list = c(FILEID[i]), file = paste(saveDir, "/", FILEID[i], ".Rdata", sep =""), envir = newEnv, compress = compress, compression_level = compression_level)
 			remove(list = c(FILEID[i]), envir = newEnv)
+			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
+		close(pb)
 		cat("Output is ready \n")
 		out <- summaryFile
 		class(out) <- c("acclist", "gt1m", "summaryFile")
 	} else {
 		out <- vector("list", N)
 		for(i in 1:N){
-			out[[i]] <- gt1m.accfile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
+			out[[i]] <- gt1mAccFile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
 			summaryFile[i,] <- out[[i]]$info
+			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
+		close(pb)
 		names(out) <- FILEID
 		cat("Output is ready \n")
 		attr(out, "info") <- summaryFile
@@ -130,7 +143,7 @@ summaryFile <- data.frame(fileid = "", serial = "", nobs = 0, epoch = 0, mode = 
 return(out)
 }
 
-gt3x.acclist <- function(accFileList, save, compress = "gzip", compression_level = 6){
+gt3xAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6){
 
 FILES <- accFileList$FILES
 FILEID <- accFileList$FILEID
@@ -184,23 +197,28 @@ tz <- accFileList$tz
 
 summaryFile <- data.frame(fileid = "", serial = "", nobs = 0, epoch = 0, mode = NA, ts_start = as.POSIXlt("2000/01/01 00:00:00"), tz = "", voltage = NA, ts_dl = as.POSIXlt("2000/01/01 00:00:00"), stringsAsFactors = FALSE)
 
+pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 	if(!is.null(saveDir)){
 		for(i in 1:N){
-			object <- gt3x.accfile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
+			object <- gt3xAccFile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
 			summaryFile[i,] <- object$info
 			assign(x = FILEID[i], value = object, envir = newEnv)
 			save(list = c(FILEID[i]), file = paste(saveDir, "/", FILEID[i], ".Rdata", sep =""), envir = newEnv, compress = compress, compression_level = compression_level)
 			remove(list = c(FILEID[i]), envir = newEnv)
+			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
+		close(pb)
 		cat("Output is ready \n")
 		out <- summaryFile
 		class(out) <- c("acclist", "gt3x", "summaryFile")
 	} else {
 		out <- vector("list", N)
 		for(i in 1:N){
-			out[[i]] <- gt3x.accfile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
+			out[[i]] <- gt3xAccFile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
 			summaryFile[i,] <- out[[i]]$info
+			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
+		close(pb)
 		names(out) <- FILEID
 		cat("Output is ready \n")
 		attr(out, "info") <- summaryFile
@@ -211,31 +229,7 @@ return(out)
 
 }
 
-# Print 'acclist' object
-
-print.acclist <- function(x, ...){
-
-y <- if("summaryFile" %in% class(x)) x else attributes(x)$info
-class(y) <- "data.frame"
-
-rd <- format(range(y$ts_start, na.rm = TRUE), "%Y-%m-%d")
-n <- length(y$fileid)
-	if(n > 1){
-		cat(paste("There are ", n, " accelerometer files. \n", "Date range is ", rd[1], " to ", rd[2], "\n", sep = ""))
-		cat("\n")
-		print(y, quote = FALSE)
-	} else {print(y, quote = FALSE)}
-}
-
-# Print accfile
-
-print.accfile <- function(x, ...){
-
-print(x$info, quote = FALSE)
-
-}
-
-gt1m.accfile <- function(file, path, fileid, counts.pos = 1, tz = "Europe/London", sparse = FALSE, fault = 32767){
+gt1mAccFile <- function(file, path, fileid, counts.pos = 1, tz = "Europe/London", sparse = FALSE, fault = 32767){
 
 filename <- paste(path, file, sep = "/")
 
@@ -332,13 +326,13 @@ oddN <- FALSE
 			if(n1 < n2) {cts <- c(cts,0)} else {steps <- c(steps,0)};
 			n <- max(c(n1,n2))
 			}
-		error_c <- errorCts(cts, fault = fault)
-		error_s <- errorSteps(steps, fault = fault)
+		error_c <- errorChk(cts, fault = fault)
+		error_s <- errorChk(steps, fault = fault)
 	} else if(Mode == 0){
 		cts <- accData
 		steps <- 0
 		n <- N
-		error_c <- errorCts(cts, fault = fault)
+		error_c <- errorChk(cts, fault = fault)
 		error_s <- 0
 	}
 
@@ -347,24 +341,24 @@ oddN <- FALSE
 summaryFile <- data.frame(fileid = fileid, serial = serial, nobs = n, epoch = epoch, mode = Mode, ts_start = TS_orig, tz = tz, voltage = Voltage, ts_dl = TS_dl, stringsAsFactors = FALSE)
 
 # Store in sparse matrix format
+err_s <- list(fileid = fileid, counts = table(error_c), steps = table(error_s), date = startDate$date_code, odd_number = oddN)
 
-	out <- if(sparse){
-		list(counts = as.matrix.csr(cts), steps = as.matrix.csr(steps),
-		error_c = as.matrix.csr(error_c),
-		error_s = as.matrix.csr(error_s), info = summaryFile,
-		error_summary = list(fileid = fileid, counts = table(error_c), steps = table(error_s), date = startDate$date_code, odd_number = oddN))
+Data <- data.frame(counts = cts, steps = steps, error_c = error_c, error_s = error_s)
+
+out <- if(sparse){
+	list(df = as.matrix.csr(as.matrix(Data)), info = summaryFile, error_summary = err_s)
 	} else {
-		list(df = data.frame(fileid = fileid, counts = cts, steps = steps, error_c = error_c, error_s = error_s),
-		info = summaryFile, error_summary = list(fileid = fileid, counts = table(error_c), steps = table(error_s), date = startDate$date_code,
-		odd_number = oddN))}
+	list(df = Data, info = summaryFile, error_summary = err_s)
+	}
 
 attr(out, "sparse") <- sparse
+attr(out, "labels") <- colnames(Data)
 class(out) <- c("accfile", "gt1m")
 return(out)
 
 }
 
-gt3x.accfile <- function(file, path, fileid, tz = "Europe/London", sparse = FALSE){
+gt3xAccFile <- function(file, path, fileid, tz = "Europe/London", sparse = FALSE, fault = 32767){
 
 filename <- paste(path, file, sep = "/")
 
@@ -443,7 +437,6 @@ formatDate[formatDate=="D"] <- "d"
 formatDate[formatDate=="yyyy"] <- "Y"
 formatDate <- paste("%", formatDate, collapse = "/", sep = "")
 
-
 # Download date and time
 sel <- grep("Download Time", Lines)
 downTime <- gsub("Download Time ", "", Lines[sel])
@@ -452,9 +445,7 @@ sel <- grep("Download Date ", Lines)
 downDate <- gsub("Download Date ", "", Lines[sel])
 downDate <- gsub("[[:blank:]]", "", downDate)
 
-
 TS_dl <- strptime(paste(downDate,downTime), format = paste(formatDate, " %H:%M:%S", sep = ""), tz = tz)
-
 
 # Determine start date and time
 
@@ -464,8 +455,18 @@ startTime <- gsub("[[:blank:]]", "", startTime)
 sel <- grep("Start Date ", Lines)
 startDate <- gsub("Start Date ", "", Lines[sel])
 startDate <- gsub("[[:blank:]]", "", startDate)
-TS_orig <- strptime(paste(startDate,startTime), format = paste(formatDate, " %H:%M:%S", sep = ""), tz = tz)
+startDate <- strsplit(startDate, "/")[[1]]
 
+	if (nchar(startDate[1]) == 1) {
+		startDate[1] <- paste("0", startDate[1], sep = "")
+	}
+	if (nchar(startDate[2]) == 1) {
+		startDate[2] <- paste("0", startDate[2], sep = "")
+	}
+
+startDate <- infoDate(x = startDate, id = fileid, format = formatDate)
+
+TS_orig <- strptime(paste(startDate$date,startTime), format = "%Y-%d-%m %H:%M:%S", tz = tz)
 }
 
 tz <- format(TS_orig, "%Z")
@@ -482,43 +483,53 @@ ncols <- length(strsplit(tmp[[1]], ",")[[1]])
 if(ncols > 4) warning(paste("Number of accelerometer variables is", ncols))
 accData <- matrix(as.numeric(unlist(strsplit(unlist(tmp), ","))), ncol = ncols, byrow = TRUE)
 n <- nrow(accData)
-colnames(accData) <- c('x','y','z','w')[1:ncols]
+colnames(accData) <- c('y','x','z','steps')[1:ncols]
+error <- NULL
+for(j in 1:ncols){
+error <- cbind(error, errorChk(accData[,j], fault = fault))
+}
+colnames(error) <- paste("error", substr(colnames(accData), 1, 1), sep = "_")
 
 # Summary file
 	
 summaryFile <- data.frame(fileid = fileid, serial = serial, nobs = n, epoch = epoch, mode = Mode, ts_start = TS_orig, tz = tz, voltage = Voltage, ts_dl = TS_dl, stringsAsFactors = FALSE)
 
-# Store in sparse matrix format
+# Error summary
+err_s <- apply(error, 2, table)
+err_s <- c(fileid = fileid, as.list(err_s), date = startDate$date_code, odd_number = NA)
 
-	out <- if(sparse){
-		list(Data = as.matrix.csr(accData), info = summaryFile)
-	} else {
-		list(df = data.frame(fileid = fileid, accData), info = summaryFile)
-		}
+# Output
+
+Data <- data.frame(accData, error)
+
+out <- if(sparse){
+	list(df = as.matrix.csr(Data), info = summaryFile, error_summary = err_s)
+} else {
+	list(df = data.frame(Data), info = summaryFile, error_summary = err_s)
+	}
 
 attr(out, "sparse") <- sparse
-
+attr(out, "labels") <- colnames(accData)
 class(out) <- c("accfile", "gt3x")
 return(out)
 
 
 }
 
-
-infoDate <- function(x, id){
+infoDate <- function(x, id, ...){
 
 # 0 y/m/d
 # 1 y/d/m
 # 2 not recognised
 
 y <- paste(x[3], x[2], x[1], sep = "-")
-test <- try(as.POSIXlt(y), silent = TRUE)
+test <- try(as.POSIXlt(y, ...), silent = TRUE)
 date_code <- 0
 	if(class(test)[1]=="try-error"){
 		y <- paste(x[3], x[1], x[2], sep = "-")
 		warning(paste("Date format for accelerometer", id, "changed to '%Y-%m-%d'"))
 		date_code <- date_code + 1
-		test <- try(as.POSIXlt(y), silent = TRUE)
+		test <- try(as.POSIXlt(y, ...), silent = TRUE)
 		if(class(test)[1]=="try-error")
 		{warning(paste("Date format for accelerometer", id, "set to '01/01/2099'")); y <- "01/01/2099";
 			date_code <- date_code + 1}
@@ -527,12 +538,33 @@ date_code <- 0
 return(list(date = y, date_code = date_code))
 }
 
+# Print 'acclist' object
+
+print.acclist <- function(x, ...){
+
+y <- if("summaryFile" %in% class(x)) x else attributes(x)$info
+class(y) <- "data.frame"
+
+rd <- format(range(y$ts_start, na.rm = TRUE), "%Y-%m-%d")
+n <- length(y$fileid)
+	if(n > 1){
+		cat(paste("There are ", n, " accelerometer files. \n", "Date range is ", rd[1], " to ", rd[2], "\n", sep = ""))
+		cat("\n")
+		print(y, quote = FALSE)
+	} else {print(y, quote = FALSE)}
+}
+
+# Print accfile
+
+print.accfile <- function(x, ...){
+
+print(x$info, quote = FALSE)
+
+}
 
 ### Classify errors
 
-# counts
-
-errorCts <- function(x, fault = 32767){
+errorChk <- function(x, fault = 32767){
 
 n <- length(x)
 Error <- rep(0,n)
@@ -554,33 +586,6 @@ Error[x == fault & !NAS] <- 1
 # negative
 Error[x < 0 & !NAS] <- 2
 
-
-return(Error)
-}
-
-# steps (currently this is a copy of errorCts. Review literature for issues specific to steps)
-
-errorSteps <- function(x, fault = 32767){
-
-n <- length(x)
-Error <- rep(0,n)
-
-# NAs
-NAS <- is.na(x)
-if(sum(NAS) > 0){
-Error[NAS] <- 3
-}
-
-# aberrant
-if(all(x[!NAS] > 10000)) Error[!NAS] <- 1
-if(all(x[!NAS] == min(x[!NAS]))) Error[!NAS] <- 1
-if(min(x[!NAS]) > 0) Error[!NAS] <- 1
-
-Error[x == fault & !NAS] <- 1
-Error[x == fault & !NAS] <- 1
-
-# negative
-Error[x < 0 & !NAS] <- 2
 
 return(Error)
 }
@@ -588,21 +593,35 @@ return(Error)
 
 # Classify wear/non-wear time
 
-markwear.accfile <- function(object, value, nz = 0, keep.error = FALSE){
+markwear.accfile <- function(object, value, which = "counts", rescale.epoch = 60, nz = 0, keep.error = FALSE){
 
 # consecutive zero-counts (value is expressed in minutes)
 sparse <- attr(object, "sparse")
+info <- object$info
+if(info$epoch < 1) {
+	stop("Epochs less than 1 second are not allowed")
+	} else {f <- rescale.epoch/info$epoch}
 
 if(sparse){
-	x <- as.numeric(as.matrix(object$counts))
-	errs_c <- as.numeric(as.matrix(object$error_c))
+	Data <- as.data.frame(as.matrix(object$df))
+	colnames(Data) <- attr(object, "labels")
 } else {
-	x <- as.numeric(object$df$counts)
-	errs_c <- as.numeric(object$df$error_c)
+	Data <- object$df
 }
 
-info <- object$info
-if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- 60/info$epoch
+nn <- intersect(c("x","y","z","counts","steps"), colnames(Data))
+
+if("gt1m" %in% class(object)){
+	if(!which %in% nn) stop(cat("Argument 'which' must be one of", nn,"\n"))
+	x <- Data[,which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[,err]
+} else if("gt3x" %in% class(object)){
+	if(!which %in% nn) stop(cat("Argument 'which' must be one of", nn,"\n"))
+	x <- Data[,which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[,err]
+}
 
 value <- value*f # 'value' is converted into seconds
 nz <- nz*f # 'nz' is converted into seconds
@@ -632,64 +651,26 @@ z <- inverse.rle(z)
 }
 
 # handle errors
-z <- handleError(z, errs_c, code = "all", na = TRUE, keep.error = keep.error)
+z <- handleError(z, err, code = "all", na = TRUE, keep.error = keep.error)
 
 z <- factor(z, levels = c(0,1), labels = c("Non-wear","Wear"))
 return(z)
 
 }
 
-markwear.acclist <- function(object, value, nz = 0, keep.error = FALSE){
+markwear.acclist <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE){
 
 # consecutive zero-counts (value is expressed in minutes)
 fileids <- attributes(object)$info$fileid
 N <- length(fileids)
 out <- vector("list", N)
 
+pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 for(i in 1:N){
-	sparse <- attr(object[[i]], "sparse")
-
-	if(sparse){
-		x <- as.numeric(as.matrix(object[[i]]$counts))
-		errs_c <- as.numeric(as.matrix(object[[i]]$error_c))
-	} else {
-		x <- as.numeric(object[[i]]$df$counts)
-		errs_c <- as.numeric(object[[i]]$df$error_c)
-	}
-
-	info <- object[[i]]$info
-	if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- 60/info$epoch
-	value.i <- value*f # 'value' is converted into seconds
-	nz.i <- nz*f # 'nz' is converted into seconds
-	z <- rle(x)
-	
-	
-	if(nz > 0){
-
-		n <- length(z$values)
-		from <- 1:(n-2)
-		middle <- from + 1
-		to <- from + 2
-
-		sel.v <- z$values[from] == 0 & z$values[to] == 0 & z$values[middle] != 0
-		sel.l <- (z$lengths[from] + z$lengths[to]) >= value.i & z$lengths[middle] <= nz.i
-		
-		sel <- sort(c(from[sel.v & sel.l], middle[sel.v & sel.l], to[sel.v & sel.l]))
-		sel <- sel[!duplicated(sel)]
-		nsel <- (1:n)[!((1:n) %in% sel)]
-		z$values[sel] <- 0
-		z$values[nsel] <- ifelse(z$values[nsel]==0 & z$lengths[nsel] >= value.i, 0, 1)
-		z <- inverse.rle(z)
-	} else {
-		z$values <- ifelse(z$values==0 & z$lengths >= value.i, 0, 1)
-		z <- inverse.rle(z)
-	}
-	# handle errors
-	z <- handleError(z, errs_c, code = "all", na = TRUE, keep.error = keep.error)
-	
-	z <- factor(z, levels = c(0,1), labels = c("Non-wear","Wear"))
-	out[[i]] <- z
+	out[[i]] <- do.call(markwear.accfile, args = list(object = object[[i]], value = value, which = which, rescale.epoch = rescale.epoch, nz = nz, keep.error = keep.error))
+	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
+close(pb)
 names(out) <- fileids
 return(out)
 
@@ -697,33 +678,49 @@ return(out)
 
 # Classify physical activity 
 
-markpa.accfile <- function(object, value, rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
+markpa.accfile <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
 
 sparse <- attr(object, "sparse")
+info <- object$info
+if(info$epoch < 1) {
+	stop("Epochs less than 1 second are not allowed")
+	} else {f <- rescale.epoch/info$epoch}
 
-if(sparse){
-	x <- as.numeric(as.matrix(object$counts))
-	errs_c <- as.numeric(as.matrix(object$error_c))
+if(sparse) {
+	Data <- as.data.frame(as.matrix(object$df))
+	colnames(Data) <- attr(object, "labels")
 } else {
-	x <- as.numeric(object$df$counts)
-	errs_c <- as.numeric(object$df$error_c)
+	Data <- object$df
+}
+
+nn <- intersect(c("x", "y", "z", "counts", "steps"), colnames(Data))
+if ("gt1m" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+else if ("gt3x" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
 }
 
 vl <- length(value)
 if(value[1] != 0) stop("First breakpoint must be 0")
 
 if(!is.null(labels)){
-nl <- length(labels)
+	nl <- length(labels)
 	if(nl != vl) stop(paste("The number of labels (", nl, ") does not match the number of possible intervals from argument value (", vl, ")", sep = ""))
 } else {
-labels <- paste("PA", 1:vl, sep = "")
+	labels <- paste("PA", 1:vl, sep = "")
 }
 
-info <- object$info
-if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- rescale.epoch/info$epoch
-
 # handle  errors
-x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
+x <- handleError(x, err, code = "all", na = TRUE, keep.error = keep.error)
 
 # classify values by epoch based on 'value' breaks. NB, the time interval for value (expressed in counts per x seconds) may be different from epoch (e.g., 15 seconds). Therefore, value is divided by f = rescale.epoch/epoch 
 
@@ -736,52 +733,56 @@ return(z)
 
 }
 
-markpa.acclist <- function(object, value, rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
+markpa.acclist <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
 
 fileids <- attributes(object)$info$fileid
-n <- length(fileids)
-out <- vector("list", n)
-vl <- length(value)
-if(value[1] != 0) stop("First breakpoint must be 0")
+N <- length(fileids)
+out <- vector("list", N)
 
-if(!is.null(labels)){
-nl <- length(labels)
-	if(nl != vl) stop(paste("The number of labels (", nl, ") does not match the number of possible intervals from argument value (", vl, ")", sep = ""))
-} else {
-labels <- paste("PA", 1:vl, sep = "")
+pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+for(i in 1:N){
+	out[[i]] <- do.call(markpa.accfile, args = list(object = object[[i]], value = value, which = which, rescale.epoch = rescale.epoch, labels = labels, extreme = extreme, keep.error = keep.error))
+	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
-
-for(i in 1:n){
-	sparse <- attr(object[[i]], "sparse")
-
-	if(sparse){
-		x <- as.numeric(as.matrix(object[[i]]$counts))
-		errs_c <- as.numeric(as.matrix(object[[i]]$error_c))
-	} else {
-		x <- as.numeric(object[[i]]$df$counts)
-		errs_c <- as.numeric(object[[i]]$df$error_c)
-	}
-
-	info <- object[[i]]$info
-	if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- rescale.epoch/info$epoch
-
-	# handle errors
-	x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
-
-	# classify values by epoch based on 'value' breaks. NB, the time interval for value (expressed in counts per x seconds) may be different from epoch (e.g., 15 seconds). Therefore, value is divided by f = rescale.epoch/epoch 
-
-	z <- findInterval(x, vec = value/f, all.inside = F)
-	z <- factor(z, levels = 1:vl, labels = labels)
-	out[[i]] <- z
-}
+close(pb)
 names(out) <- fileids
-attr(out, "extreme") <- if(is.null(extreme)) NULL else if(extreme == "last") labels[vl] else labels[extreme]
-
 return(out)
 
 }
 
-markbouts.accfile <- function(object, value, bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
+markbouts.accfile <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
+
+sparse <- attr(object, "sparse")
+info <- object$info
+
+if (info$epoch < 1) {
+	stop("Epochs less than 1 second are not allowed")
+}
+else {
+	f <- rescale.epoch/info$epoch
+}
+if (sparse) {
+	Data <- as.data.frame(as.matrix(object$df))
+	colnames(Data) <- attr(object, "labels")
+}
+else {
+	Data <- object$df
+}
+nn <- intersect(c("x", "y", "z", "counts", "steps"), colnames(Data))
+if ("gt1m" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+else if ("gt3x" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
 
 vl <- length(value)
 if(value[1] != 0) stop("First breakpoint must be 0")
@@ -793,18 +794,6 @@ nl <- length(value.labels)
 value.labels <- paste("PA", 1:vl, sep = "")
 }
 
-sparse <- attr(object, "sparse")
-
-if(sparse){
-	x <- as.numeric(as.matrix(object$counts))
-	errs_c <- as.numeric(as.matrix(object$error_c))
-} else {
-	x <- as.numeric(object$df$counts)
-	errs_c <- as.numeric(object$df$error_c)
-}
-
-info <- object$info
-if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- rescale.epoch/info$epoch
 
 # collapse factor
 timestamp <- tsFormat(object)
@@ -813,7 +802,7 @@ ucf <- unique(collapse.factor)
 nucf <- length(ucf)
 
 # handle  errors
-x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
+x <- handleError(x, err, code = "all", na = TRUE, keep.error = keep.error)
 
 # classify values by epoch based on 'value' breaks. NB, the time interval for value (expressed in counts per x seconds) may be different from epoch (e.g., 15 seconds). Therefore, value is divided by f = rescale.epoch/epoch 
 
@@ -867,92 +856,21 @@ return(res)
 
 }
 
-markbouts.acclist <- function(object, value, bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
+markbouts.acclist <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
 
 fileids <- attributes(object)$info$fileid
-n <- length(fileids)
-out <- vector("list", n)
-vl <- length(value)
-if(value[1] != 0) stop("First breakpoint must be 0")
+N <- length(fileids)
+out <- vector("list", N)
 
-if(!is.null(value.labels)){
-nl <- length(value.labels)
-	if(nl != vl) stop(paste("The number of labels (", nl, ") does not match the number of possible intervals from argument value (", vl, ")", sep = ""))
-} else {
-value.labels <- paste("PA", 1:vl, sep = "")
+pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+
+for(i in 1:N){
+	out[[i]] <- do.call(markbouts.accfile, args = list(object = object[[i]], value = value, which = which, bts = bts, rescale.epoch = rescale.epoch, collapse.by = collapse.by, value.labels = value.labels, bouts.labels = bouts.labels, extreme = extreme, keep.error = keep.error))
+	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
 
-for(i in 1:n){
-	sparse <- attr(object[[i]], "sparse")
-
-	if(sparse){
-		x <- as.numeric(as.matrix(object[[i]]$counts))
-		errs_c <- as.numeric(as.matrix(object[[i]]$error_c))
-	} else {
-		x <- as.numeric(object[[i]]$df$counts)
-		errs_c <- as.numeric(object[[i]]$df$error_c)
-	}
-
-	info <- object[[i]]$info
-	if(info$epoch < 1) stop("Epochs less than 1 second are not allowed") else f <- rescale.epoch/info$epoch
-
-	# collapse factor
-	timestamp <- tsFormat(object[[i]])
-	collapse.factor <- as.character(format(timestamp, collapse.by))
-	ucf <- unique(collapse.factor)
-	nucf <- length(ucf)
-	
-	# handle errors
-	x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
-
-	# classify values by epoch based on 'value' breaks. NB, the time interval for value (expressed in counts per x seconds) may be different from epoch (e.g., 15 seconds). Therefore, value is divided by f = rescale.epoch/epoch 
-
-	z <- findInterval(x, vec = value/f, all.inside = F)
-	uz <- sort(unique(z))
-	bouts <- rle(z)
-	bouts$lengths <- bouts$lengths/f
-	bouts <- xtabs(~bouts$lengths+bouts$values) # frequency table bouts by duration and PA intensity
-	duration <- as.numeric(rownames(bouts)) # duration of bouts
-	duration_factor <- cut(duration, breaks = bts, labels = bouts.labels, include.lowest = TRUE, right = FALSE)
-
-	res <- array(0, dim = c(length(bts) - 1, vl, 3, nucf), dimnames = list(levels(duration_factor), 1:vl, c("tot_duration","frequency","mean_duration"), ucf))
-
-	for(j in 1:nucf){
-		x.sub <- x[collapse.factor == ucf[j]]
-		z <- findInterval(x.sub, vec = value/f, all.inside = F)
-		bouts <- rle(z)
-		bouts$lengths <- bouts$lengths/f
-
-		bouts <- xtabs(~bouts$lengths+bouts$values) # frequency table bouts by duration and PA intensity
-		duration <- as.numeric(rownames(bouts)) # duration of bouts
-		duration_factor <- cut(duration, breaks = bts, labels = bouts.labels, include.lowest = TRUE, right = FALSE)
-		duration_bouts <- sweep(bouts, 1, duration, "*") # time spent in bouts
-		group_bouts_dur <- apply(duration_bouts, 2, function(x,y) tapply(x, list(y), sum, na.rm = TRUE), y = duration_factor)
-		if(sum(is.na(group_bouts_dur)) > 0){
-			group_bouts_dur[is.na(group_bouts_dur)] <- 0
-			warning("Some cells are empty. Bouts duration set to 0")
-		}
-		group_bouts_freq <- apply(bouts, 2, function(x,y) tapply(x, list(y), sum, na.rm = TRUE), y = duration_factor)
-		if(sum(is.na(group_bouts_freq)) > 0){
-			group_bouts_freq[is.na(group_bouts_freq)] <- 0
-			warning("Some cells are empty. Bouts frequence set to 0")
-		}
-		group_bouts_meandur <- group_bouts_dur/group_bouts_freq
-
-	res[,match(colnames(group_bouts_dur), uz),1,j] <- group_bouts_dur
-	res[,match(colnames(group_bouts_freq), uz),2,j] <- group_bouts_freq
-	res[,match(colnames(group_bouts_meandur), uz),3,j] <- group_bouts_meandur
-
-	}
-
-	dimnames(res)[[2]] <- value.labels
-
-	out[[i]] <- res
-	}
-	
+close(pb)
 names(out) <- fileids
-	attr(out, "extreme") <- if(is.null(extreme)) NULL else if(extreme == "last") value.labels[vl] else value.labels[extreme]
-
 return(out)
 
 }
@@ -992,7 +910,7 @@ dateSummary <- function(object, wear, timestamp, minval  = 0, rescale.epoch = 60
 info <- object$info
 
 # total seconds
-N <- info$n*info$epoch
+N <- info$nobs*info$epoch
 
 # start and end dates
 start <- info$ts_start
@@ -1032,7 +950,7 @@ return(td)
 
 # Aggregate accelerometer data
 
-agg.accfile <- function(object, by, x = NULL, y = NULL, keep.error = FALSE){
+aggAccFile <- function(object, by, which = "counts", x = NULL, keep.error = FALSE){
 
 info <- object$info
 sparse <- attr(object, "sparse")
@@ -1043,37 +961,51 @@ f <- by/info$epoch
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 if(!is.wholenumber(f)) stop("Only multiples of epoch length are allowed")
 
-if(sparse){
-	errs_c <- as.numeric(as.matrix(object$error_c))
-	errs_s <- as.numeric(as.matrix(object$error_s))
-		if(is.null(x)) x <- as.numeric(as.matrix(object$counts))
-		if(is.null(y)) y <- as.numeric(as.matrix(object$steps))
-	} else {
-	errs_c <- as.numeric(object$df$error_c)
-	errs_s <- as.numeric(object$df$error_s)
-		if(is.null(x)) x <- as.numeric(object$df$counts)
-		if(is.null(y)) y <- as.numeric(object$df$steps)	
-	}
-	# handle errors
-	x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
-	y <- handleError(y, errs_s, code = "all", na = TRUE, keep.error = keep.error)
+if (sparse) {
+	Data <- as.data.frame(as.matrix(object$df))
+	colnames(Data) <- attr(object, "labels")
+}
+else {
+	Data <- object$df
+}
+
+if(is.null(x)){
+nn <- intersect(c("x", "y", "z", "counts", "steps"), colnames(Data))
+if ("gt1m" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+else if ("gt3x" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+
+# handle errors
+x <- handleError(x, err, code = "all", na = TRUE, keep.error = keep.error)
+
+}
 
 minn <- seq(1, info$nobs, by = f)
 maxn <- seq(f, info$nobs, by = f)
-if(info$nobs %% f !=0) maxn <- c(maxn, info$n)
+if(info$nobs %% f !=0) maxn <- c(maxn, info$nobs)
 if(length(minn) != length(maxn)) stop("Check 'minn' and 'maxn'")
 
 fun.do <- function(a, b, x) sum(x[a:b], na.rm = TRUE)
-x <- mapply(fun.do, a = minn, b = maxn, MoreArgs = list(x = x)) # counts aggregated
-y <- mapply(fun.do, a = minn, b = maxn, MoreArgs = list(x = y)) # steps aggregated
+x <- mapply(fun.do, a = minn, b = maxn, MoreArgs = list(x = x)) # aggregated
+
 if(sparse) {
 	x <- as.matrix.csr(x)
-	y <- as.matrix.csr(y)
 }
 
 TimeStamp <- tsFromEpoch(object, minn)
 
-out <- list(counts = x, steps = y, ts_agg = TimeStamp)
+out <- list(outcome = x, ts_agg = TimeStamp)
 attr(out, "sparse") <- sparse
 class(out) <- "accfile_agg"
 return(out)
@@ -1098,7 +1030,7 @@ return(x)
 
 # Functions for data collapsing
 
-collapse.fun <- function(x, fun = list(mean = function(x) mean(x, na.rm = TRUE), median = function(x) median(x, na.rm = TRUE),
+fun.collapse <- function(x, fun = list(mean = function(x) mean(x, na.rm = TRUE), median = function(x) median(x, na.rm = TRUE),
 	sd = function(x) sd(x, na.rm = TRUE))){
 
 n <- length(fun)
@@ -1121,37 +1053,47 @@ return(out)
 
 # Collapse data
 
-collapse.accfile <- function(object, palist = list(value = c(0, 100, 1e3, 5e3, 13e3), rescale.epoch = 60, labels = NULL, extreme = NULL), mwlist = list(value = 20, nz = 0), collapse.by = "%Y-%m-%d", collapse.epoch = 60, aggregate.by = NULL, FUN.list = list(mean = function(x) mean(x, na.rm = TRUE)), keep.extreme = FALSE, keep.error = FALSE, ...){
+collapse.accfile <- function(object, which = "counts", palist = list(value = c(0, 100, 1e3, 5e3, 13e3), rescale.epoch = 60, labels = NULL, extreme = NULL), mwlist = list(value = 20, nz = 0, rescale.epoch = 60), collapse.by = "%Y-%m-%d", collapse.epoch = 60, aggregate.by = NULL, FUN.list = list(mean = function(x) mean(x, na.rm = TRUE)), keep.extreme = FALSE, keep.error = FALSE, ...){
 
-Class <- class(object)
-if(!any(Class == "gt1m")) stop("This function is implemented for class 'gt1m' only")
+Call <- match.call()
 
-wear <- do.call(markwear.accfile, args = c(list(object = object, keep.error = keep.error), mwlist))
+sparse <- attr(object, "sparse")
+info <- object$info
+if (info$epoch < 1) {
+	stop("Epochs less than 1 second are not allowed")
+}
+if (sparse) {
+	Data <- as.data.frame(as.matrix(object$df))
+	colnames(Data) <- attr(object, "labels")
+}
+else {
+	Data <- object$df
+}
+nn <- intersect(c("x", "y", "z", "counts", "steps"), colnames(Data))
+if ("gt1m" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+else if ("gt3x" %in% class(object)) {
+	if (!which %in% nn) 
+		stop(cat("Argument 'which' must be one of", nn, "\n"))
+	x <- Data[, which]
+	err <- paste("error", substr(which, 1, 1), sep = "_")
+	err <- Data[, err]
+}
+
+# Classify wear-time and PA type
+wear <- do.call(markwear.accfile, args = c(list(object = object, which = which, keep.error = keep.error), mwlist))
 timestamp <- tsFormat(object)
 DS <- dateSummary(object, wear, timestamp, keep.error = keep.error, ...)
-PA_type <- do.call(markpa.accfile, args = c(list(object = object, keep.error = keep.error), palist))
+PA_type <- do.call(markpa.accfile, args = c(list(object = object, which = which, keep.error = keep.error), palist))
 upa <- unique(PA_type)
 
-# extract info
-info <- object$info
-sparse <- attr(object, "sparse")
-
-if(sparse){
-	x <- as.numeric(as.matrix(object$counts))
-	y <- as.numeric(as.matrix(object$steps))
-	errs_c <- as.numeric(as.matrix(object$error_c))
-	errs_s <- as.numeric(as.matrix(object$error_s))
-} else {
-	x <- as.numeric(object$df$counts)
-	y <- as.numeric(object$df$steps)	
-	errs_c <- as.numeric(object$df$error_c)
-	errs_s <- as.numeric(object$df$error_s)
-}
-if(info$mode == 0) y <- rep(0, info$nobs)
-
 # handle errors and extreme values
-x <- handleError(x, errs_c, code = "all", na = TRUE, keep.error = keep.error)
-y <- handleError(y, errs_s, code = "all", na = TRUE, keep.error = keep.error)
+x <- handleError(x, err, code = "all", na = TRUE, keep.error = keep.error)
 
 if(!is.null(attr(PA_type, "extreme"))){
 	if(any(PA_type == attr(PA_type, "extreme")) & !keep.extreme){
@@ -1160,14 +1102,13 @@ if(!is.null(attr(PA_type, "extreme"))){
 	}
 }
 
-# handle wear/non-wear time for counts and steps
+# handle wear/non-wear time
 x[wear == "Non-wear"] <- NA
-y[wear == "Non-wear"] <- NA
 collapse.factor <- as.character(format(timestamp, collapse.by))
 
 # aggregate before collapsing
 if(!is.null(aggregate.by)){
-	object.agg <- agg.accfile(object, by = aggregate.by, x = x, y = y)
+	object.agg <- aggAccFile(object, by = aggregate.by, x = x)
 	timestamp.agg <- object.agg$ts_agg
 
 	# check collapsing factors
@@ -1175,16 +1116,16 @@ if(!is.null(aggregate.by)){
 	chk <- length(setdiff(collapse.factor, collapse.factor.agg)) == 0
 	if(!chk) stop("Collapsing factors differ for original and aggregated values")
 	
-	out.agg <- data.frame(collapse.by = collapse.factor.agg, counts = as.matrix(object.agg$counts), steps = as.matrix(object.agg$counts), stringsAsFactors = F)
+	out.agg <- data.frame(collapse.by = collapse.factor.agg, outcome = as.matrix(object.agg$outcome), stringsAsFactors = F)
 }
 
 # Create dataframes, drop truncated days
 sel <- DS$days[DS$IsTruncated == 0]
-out <- data.frame(wear = wear, collapse.by = collapse.factor, PA_type = PA_type, counts = x, steps = y, stringsAsFactors = F)
+out <- data.frame(wear = wear, collapse.by = collapse.factor, PA_type = PA_type, outcome = x, stringsAsFactors = F)
 levels(out$PA_type) <- c(levels(out$PA_type), "non-wear")
 out$PA_type[out$wear == "Non-wear"] <- "non-wear" # create level non-wear
 
-# Summary counts, steps, pa type
+# Summary
 
 pa.summary <- aggregate(out$PA_type, list(collapse.by = out$collapse.by, PA_type = out$PA_type), function(x,n,collapse.epoch) sum(!is.na(x))*n/collapse.epoch, n=info$epoch, collapse.epoch=collapse.epoch)
 pa.summary <- xtabs(x ~ collapse.by + PA_type, data = pa.summary)
@@ -1195,12 +1136,9 @@ names(pa.summary) <- nnc
 pa.summary$collapse.by <- nnr
 
 if(!is.null(aggregate.by)){
-	counts.summary <- aggregate(out.agg$counts, list(collapse.by = out.agg$collapse.by), function(x, args) collapse.fun(x, args), args = FUN.list)
-	steps.summary <- aggregate(out.agg$steps, list(collapse.by = out.agg$collapse.by), function(x, args) collapse.fun(x, args), args = FUN.list)
-
+	outcome.summary <- aggregate(out.agg$outcome, list(collapse.by = out.agg$collapse.by), function(x, args) fun.collapse(x, args), args = FUN.list)
 } else {
-	counts.summary <- aggregate(out$counts, list(collapse.by = out$collapse.by), function(x, args) collapse.fun(x, args), args = FUN.list)
-	steps.summary <- aggregate(out$steps, list(collapse.by = out$collapse.by), function(x, args) collapse.fun(x, args), args = FUN.list)
+	outcome.summary <- aggregate(out$outcome, list(collapse.by = out$collapse.by), function(x, args) fun.collapse(x, args), args = FUN.list)
 }
 
 # Put in matrix format and drop dates where null
@@ -1208,24 +1146,23 @@ if(!is.null(aggregate.by)){
 nnf <- names(FUN.list)
 
 if(length(nnf) != 1) {
-colnames(counts.summary$x) <- paste(colnames(counts.summary$x), ".counts", sep = "")
-colnames(steps.summary$x) <- paste(colnames(steps.summary$x), ".steps", sep = "")
+colnames(outcome.summary$x) <- paste("outcome", colnames(outcome.summary$x), sep = ".")
 }
 # Produce final dataframe
 
+MAT <- data.frame(fileid = as.character(info$fileid), collapse.by = outcome.summary$collapse.by)
+
 if(length(nnf) == 1) {
-MAT <- as.data.frame(cbind(fileid = as.character(info$fileid),
-	collapse.by = counts.summary$collapse.by, counts.summary[,2], steps.summary[,2]))
-names(MAT)[names(MAT) == "V3"] <- paste(nnf, ".counts", sep = "")
-names(MAT)[names(MAT) == "V4"] <- paste(nnf, ".steps", sep = "")
+MAT <- cbind(MAT, outcome.summary[,2])
+names(MAT)[3] <- paste("outcome", nnf, sep = ".")
 } else {
-MAT <- as.data.frame(cbind(fileid = as.character(info$fileid),
-	collapse.by = counts.summary$collapse.by, counts.summary$x,  steps.summary$x))
+MAT <- cbind(MAT, outcome.summary$x)
 }
 
-MAT <- merge(MAT, pa.summary)
-
-return(MAT)
+val <- list(outcome = merge(MAT, pa.summary))
+val$call <- Call
+class(val) <- "accfile.collapse"
+return(val)
 
 }
 
@@ -1235,6 +1172,7 @@ return(MAT)
 plot.gt1m <- function(x, y = NULL, xlab, ylab, main, keep.error = TRUE, which = "counts", select = 1,...){
 
 select <- select[1]
+if(!which %in% c("counts","steps")) stop("Argument 'which' must be one of  c('counts','steps')")
 
 object <- x
 if("accfile" %in% class(object)){
@@ -1309,5 +1247,71 @@ if("accfile" %in% class(object)){
 
 }
 
+plot.gt3x <- function(x, y = NULL, xlab, ylab, main, keep.error = TRUE, which = "x", select = 1,...){
+
+select <- select[1]
+if(!which %in% c("x","y","z","steps")) stop("Argument 'which' must be one of  c('x','y','z','steps')")
+
+object <- x
+if("accfile" %in% class(object)){
+
+	sparse <- attr(object, "sparse")
+
+	if(sparse){
+		Data <- as.matrix(object$Data)
+		colnames(Data) <- attr(object, "labels")
+	} else {
+		Data <- object$df
+	}
+
+	ncols <- ncol(Data)
+	if(ncols < 5 & which == "steps") stop("Steps variable not available")
+	z <- switch(which,
+		x = Data$x,
+		y = Data$y,
+		z = Data$z,
+		steps = Data$steps)
+
+	timestamp <- tsFormat(object)
+	
+	if(missing(xlab)) xlab <- "Timestamp"
+	if(missing(ylab)) ylab <- which
+	if(missing(main)) main <- object$info$fileid
+
+	plot.default(timestamp, z, type = "l", xlab = xlab, ylab = ylab, main = main, ...)
+} else {
+
+	object <- object[[select]]
+	sparse <- attr(object, "sparse")
+
+	if(sparse){
+		Data <- as.matrix(object$df)
+		colnames(Data) <- attr(object, "labels")
+	} else {
+		Data <- object$df
+	}
+
+
+	ncols <- ncol(Data)
+	if(ncols < 5 & which == "steps") stop("Steps variable not available")
+	z <- switch(which,
+		x = Data$x,
+		y = Data$y,
+		z = Data$z,
+		steps = Data$steps)
+
+	timestamp <- tsFormat(object)
+
+	if(missing(xlab)) xlab <- "Timestamp"
+	if(missing(ylab)) ylab <- which
+	if(missing(main)) main <- object$info$fileid
+
+	plot.default(timestamp, z, type = "l", xlab = xlab, ylab = ylab, main = main, ...)
+
+
+}
+
+
+}
 
 

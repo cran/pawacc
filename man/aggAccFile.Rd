@@ -1,5 +1,5 @@
-\name{agg.accfile}
-\alias{agg.accfile}
+\name{aggAccFile}
+\alias{aggAccFile}
 
 \title{
 Aggregate Accelerometry Data
@@ -9,8 +9,8 @@ This function aggregates count values
 }
 
 \usage{
-agg.accfile(object, by, x = NULL, y = NULL,
-	keep.error = FALSE)
+aggAccFile(object, by, which = "counts",
+	x = NULL, keep.error = FALSE)
 }
 
 \arguments{
@@ -18,14 +18,13 @@ agg.accfile(object, by, x = NULL, y = NULL,
 an object of class \code{accfile}.
   }
   \item{by}{
-epoch by which count and steps are aggregated. Note: it cannot be less that the accelerometer epoch (\code{object$info$epoch
-}).
+epoch by which count and steps are aggregated. Note: it cannot be less that the accelerometer epoch (\code{object$info$epoch}).
+}
+  \item{which}{
+either 'counts' or 'steps' for \code{gt1m} files or one of \code{c('x','y','z','steps')} for \code{gt3x} files.
 }
   \item{x}{
-optional argument. If \code{NULL}, this is set to counts (\code{object$counts}).
-}
-  \item{y}{
-optional argument. If \code{NULL}, this is set to counts (\code{object$steps}).
+optional argument. If \code{NULL}, this is set to \code{counts}.
 }
   \item{keep.error}{
 logical flag. Should errors be omitted?
@@ -35,8 +34,7 @@ logical flag. Should errors be omitted?
 
 
 \value{
-\item{counts }{aggregated counts}
-\item{steps }{aggregated steps}
+\item{outcome}{aggregated values}
 \item{ts_agg }{time stamping}
 }
 
@@ -57,10 +55,10 @@ Marco Geraci
 data(gt1m_sample)
 
 # aggregate by 30-second epochs
-agg.accfile(gt1m_sample, by = 30)
+aggAccFile(gt1m_sample, by = 30)
 
 # aggregate by 5-minute epochs
-agg.accfile(gt1m_sample, by = 300, keep.error = FALSE)
+aggAccFile(gt1m_sample, by = 300, keep.error = FALSE)
 
 }
 
