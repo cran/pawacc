@@ -26,3 +26,9 @@ Version 1.2 (June 20, 2014)
 - renamed 'gt1m.accfile', 'gt3x.accfile', 'gt1m.acclist', 'gt3x.acclist' as 'gt1mAccFile', 'gt3xAccFile', 'gt1mAccDir', 'gt3xAccDir'
 - defined generic functions 'markwear', 'markpa', 'markbouts', 'collapse'
 - plot function for 'gt3x' files
+
+=============================================
+
+Version 1.2.1 (December 10, 2014)
+
+- Changed maintainer's email address

@@ -1,11 +1,11 @@
 fe06497acaf4f45999925d348c2605f9 *COPYING
-b5ab4480c75158090dcff0ceec997ee0 *DESCRIPTION
+5699b613bf72913f339e00b3841a4d67 *DESCRIPTION
 b4e4aca9f3c61f9b43843f61f9edd303 *NAMESPACE
 25bd22e2dc0118abd5575d05624a50bd *R/pawacc.R
 7c6de041861f1e8515526d85a6cba870 *data/gt1m_sample.rda
 27560cf1201b413fd86f6b041c5872cf *data/gt3x_sample.rda
 18468fc947f822c076c9b6b77fe76032 *inst/CITATION
-fa7c59ca68be0fa34642b261a4891793 *inst/ChangeLog
+367335a251e0e3b28d6c4c9be619c320 *inst/ChangeLog
 f41b00a8c81abc3a1bc1d9d9c59c7cb1 *inst/extdata/gt1m_sample.dat
 2f455b1f2c5a068eb18fb5ab0f4d200e *inst/extdata/gt3x_sample.dat
 f9c488088d6318935b9e3ddeb7caa510 *man/aggAccFile.Rd
@@ -23,7 +23,7 @@ e25ec1a4be7f1e627ab85c26d992ce63 *man/gt3x_sample.Rd
 9cfc2bb146de3be91220da7233abc16b *man/markpa.acclist.Rd
 4ba0f691fceaf82e9526f88559ac78ec *man/markwear.acclist.Rd
 2731639f83d299728afaf22688e3ee50 *man/pawacc-internal.Rd
-dc22b1b5bbb666d8ca774b7f7afe576c *man/pawacc-package.Rd
+c298a96c72a20937974b4fb44e3dc7ce *man/pawacc-package.Rd
 85d1b5ac6498e8504e9ac5e2cae0fb2a *man/plot.gt1m.Rd
 13b167eb7bd224fa53689bd33bb20e17 *man/print.acclist.Rd
 0f813c20f985db5e4c2307201ee38379 *man/readAccDir.Rd
