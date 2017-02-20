@@ -1,9 +1,9 @@
 ############################################################################
-# R functions for pawacc 1.2
-# Marco Geraci, 20 June 2014
+# R functions for pawacc 1.2.2
+# Marco Geraci, 20 February 2017
 ############################################################################
 
-# startup message
+# Startup message
 
 ".onAttach" <- function(lib, pkg) {
     if(interactive() || getOption("verbose"))
@@ -11,11 +11,15 @@
 		packageDescription(pkg)$Version, pkg))
 }
 
+
 # Generics
 
-markwear <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE) UseMethod("markwear")
-markpa <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE) UseMethod("markpa")
-markbouts <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE) UseMethod("markbouts")
+markwear <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE, progbar = TRUE) UseMethod("markwear")
+
+markpa <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE, progbar = TRUE) UseMethod("markpa")
+
+markbouts <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE, progbar = TRUE) UseMethod("markbouts")
+
 collapse <- function(...) UseMethod("collapse")
 
 # Read accelerometer files
@@ -58,7 +62,7 @@ return(out)
 		
 }
 
-gt1mAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6){
+gt1mAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6, progbar = TRUE){
 
 FILES <- accFileList$FILES
 FILEID <- accFileList$FILEID
@@ -67,6 +71,7 @@ model <- accFileList$model
 N <- length(FILES)
 newEnv <- new.env()
 tz <- accFileList$tz
+isWin <- .Platform$OS.type == "windows"
 
 # determine saving mode
 
@@ -112,7 +117,7 @@ tz <- accFileList$tz
 
 summaryFile <- data.frame(fileid = "", serial = "", nobs = 0, epoch = 0, mode = NA, ts_start = as.POSIXlt("2000/01/01 00:00:00"), tz = "", voltage = NA, ts_dl = as.POSIXlt("2000/01/01 00:00:00"), stringsAsFactors = FALSE)
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+if(isWin & progbar) pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 	if(!is.null(saveDir)){
 		for(i in 1:N){
 			object <- gt1mAccFile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
@@ -120,9 +125,9 @@ pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 			assign(x = FILEID[i], value = object, envir = newEnv)
 			save(list = c(FILEID[i]), file = paste(saveDir, "/", FILEID[i], ".Rdata", sep =""), envir = newEnv, compress = compress, compression_level = compression_level)
 			remove(list = c(FILEID[i]), envir = newEnv)
-			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+			if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
-		close(pb)
+		if(isWin & progbar) close(pb)
 		cat("Output is ready \n")
 		out <- summaryFile
 		class(out) <- c("acclist", "gt1m", "summaryFile")
@@ -131,9 +136,9 @@ pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 		for(i in 1:N){
 			out[[i]] <- gt1mAccFile(file = FILES[i], path = path, fileid = FILEID[i], counts.pos = accFileList$counts.pos, tz = tz, sparse = accFileList$sparse, fault = accFileList$fault)
 			summaryFile[i,] <- out[[i]]$info
-			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+			if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
-		close(pb)
+		if(isWin & progbar) close(pb)
 		names(out) <- FILEID
 		cat("Output is ready \n")
 		attr(out, "info") <- summaryFile
@@ -143,7 +148,7 @@ pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 return(out)
 }
 
-gt3xAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6){
+gt3xAccDir <- function(accFileList, save, compress = "gzip", compression_level = 6, progbar = TRUE){
 
 FILES <- accFileList$FILES
 FILEID <- accFileList$FILEID
@@ -152,6 +157,7 @@ model <- accFileList$model
 N <- length(FILES)
 newEnv <- new.env()
 tz <- accFileList$tz
+isWin <- .Platform$OS.type == "windows"
 
 # determine saving mode
 
@@ -197,7 +203,7 @@ tz <- accFileList$tz
 
 summaryFile <- data.frame(fileid = "", serial = "", nobs = 0, epoch = 0, mode = NA, ts_start = as.POSIXlt("2000/01/01 00:00:00"), tz = "", voltage = NA, ts_dl = as.POSIXlt("2000/01/01 00:00:00"), stringsAsFactors = FALSE)
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+if(isWin & progbar) pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 	if(!is.null(saveDir)){
 		for(i in 1:N){
 			object <- gt3xAccFile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
@@ -205,9 +211,9 @@ pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 			assign(x = FILEID[i], value = object, envir = newEnv)
 			save(list = c(FILEID[i]), file = paste(saveDir, "/", FILEID[i], ".Rdata", sep =""), envir = newEnv, compress = compress, compression_level = compression_level)
 			remove(list = c(FILEID[i]), envir = newEnv)
-			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+			if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
-		close(pb)
+		if(isWin & progbar) close(pb)
 		cat("Output is ready \n")
 		out <- summaryFile
 		class(out) <- c("acclist", "gt3x", "summaryFile")
@@ -216,9 +222,9 @@ pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 		for(i in 1:N){
 			out[[i]] <- gt3xAccFile(file = FILES[i], path = path, fileid = FILEID[i], tz = tz, sparse = accFileList$sparse)
 			summaryFile[i,] <- out[[i]]$info
-			setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+			if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 		}
-		close(pb)
+		if(isWin & progbar) close(pb)
 		names(out) <- FILEID
 		cat("Output is ready \n")
 		attr(out, "info") <- summaryFile
@@ -593,7 +599,7 @@ return(Error)
 
 # Classify wear/non-wear time
 
-markwear.accfile <- function(object, value, which = "counts", rescale.epoch = 60, nz = 0, keep.error = FALSE){
+markwear.accfile <- function(object, value, which = "counts", rescale.epoch = 60, nz = 0, keep.error = FALSE, progbar = NULL){
 
 # consecutive zero-counts (value is expressed in minutes)
 sparse <- attr(object, "sparse")
@@ -658,19 +664,20 @@ return(z)
 
 }
 
-markwear.acclist <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE){
+markwear.acclist <- function(object, value, which = "counts",  rescale.epoch = 60, nz = 0, keep.error = FALSE, progbar = TRUE){
 
 # consecutive zero-counts (value is expressed in minutes)
 fileids <- attributes(object)$info$fileid
 N <- length(fileids)
 out <- vector("list", N)
+isWin <- .Platform$OS.type == "windows"
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+if(isWin & progbar) pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 for(i in 1:N){
 	out[[i]] <- do.call(markwear.accfile, args = list(object = object[[i]], value = value, which = which, rescale.epoch = rescale.epoch, nz = nz, keep.error = keep.error))
-	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+	if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
-close(pb)
+if(isWin & progbar) close(pb)
 names(out) <- fileids
 return(out)
 
@@ -678,7 +685,7 @@ return(out)
 
 # Classify physical activity 
 
-markpa.accfile <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
+markpa.accfile <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE, progbar = NULL){
 
 sparse <- attr(object, "sparse")
 info <- object$info
@@ -733,24 +740,25 @@ return(z)
 
 }
 
-markpa.acclist <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE){
+markpa.acclist <- function(object, value, which = "counts", rescale.epoch = 60, labels = NULL, extreme = NULL, keep.error = FALSE, progbar = TRUE){
 
 fileids <- attributes(object)$info$fileid
 N <- length(fileids)
 out <- vector("list", N)
+isWin <- .Platform$OS.type == "windows"
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+if(isWin & progbar) pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 for(i in 1:N){
 	out[[i]] <- do.call(markpa.accfile, args = list(object = object[[i]], value = value, which = which, rescale.epoch = rescale.epoch, labels = labels, extreme = extreme, keep.error = keep.error))
-	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+	if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
-close(pb)
+if(isWin & progbar) close(pb)
 names(out) <- fileids
 return(out)
 
 }
 
-markbouts.accfile <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
+markbouts.accfile <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE, progbar = NULL){
 
 sparse <- attr(object, "sparse")
 info <- object$info
@@ -856,20 +864,21 @@ return(res)
 
 }
 
-markbouts.acclist <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE){
+markbouts.acclist <- function(object, value, which = "counts", bts = c(0,10,20,Inf), rescale.epoch = 60, collapse.by = "%Y-%m-%d", value.labels = NULL, bouts.labels = NULL, extreme = NULL, keep.error = FALSE, progbar = TRUE){
 
 fileids <- attributes(object)$info$fileid
 N <- length(fileids)
 out <- vector("list", N)
+isWin <- .Platform$OS.type == "windows"
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
+if(isWin & progbar) pb <- winProgressBar(title = "progress bar", min = 0, max = N, width = 300)
 
 for(i in 1:N){
 	out[[i]] <- do.call(markbouts.accfile, args = list(object = object[[i]], value = value, which = which, bts = bts, rescale.epoch = rescale.epoch, collapse.by = collapse.by, value.labels = value.labels, bouts.labels = bouts.labels, extreme = extreme, keep.error = keep.error))
-	setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
+	if(isWin & progbar) setWinProgressBar(pb, i, title = paste(round(i/N*100, 0), "% done"))
 }
 
-close(pb)
+if(isWin & progbar) close(pb)
 names(out) <- fileids
 return(out)
 

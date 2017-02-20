@@ -32,3 +32,12 @@ Version 1.2 (June 20, 2014)
 Version 1.2.1 (December 10, 2014)
 
 - Changed maintainer's email address
+
+=============================================
+
+Version 1.2.2 (February 20, 2017)
+
+- Changed NAMESPACE to import undefined global functions
+- Other changes to comply with CRAN checks.
+
+

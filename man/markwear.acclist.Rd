@@ -11,11 +11,11 @@ This functions identifies sequences of zeroes of a given length to classify wear
 }
 \usage{
 markwear(object, value, which = "counts", rescale.epoch = 60,
-	nz = 0, keep.error = FALSE)
+	nz = 0, keep.error = FALSE, progbar = TRUE)
 \method{markwear}{acclist}(object, value, which = "counts", rescale.epoch = 60,
-	nz = 0, keep.error = FALSE)
+	nz = 0, keep.error = FALSE, progbar = TRUE)
 \method{markwear}{accfile}(object, value, which = "counts", rescale.epoch = 60,
-	nz = 0, keep.error = FALSE)
+	nz = 0, keep.error = FALSE, progbar = NULL)
 }
 
 \arguments{
@@ -38,6 +38,10 @@ the length of the time window (in minutes) of non-zero value sequences allowed b
   \item{keep.error}{
 logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
+  \item{progbar}{
+logical flag. Should a progress bar be used? Available for Windows only. Argument not used for class \code{accfile}.
+}
+
 
 }
 \details{

@@ -11,11 +11,11 @@ This function identifies modes of physical activity using user-defined breakpoin
 }
 \usage{
 markpa(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = TRUE)
 \method{markpa}{acclist}(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = TRUE)
 \method{markpa}{accfile}(object, value, which = "counts", rescale.epoch = 60, labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = NULL)
 }
 
 \arguments{
@@ -40,6 +40,9 @@ if \code{value} includes a threshold for defining the category of extreme values
 
   \item{keep.error}{
 logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
+}
+  \item{progbar}{
+logical flag. Should a progress bar be used? Available for Windows only. Argument not used for class \code{accfile}.
 }
 
 }

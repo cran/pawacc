@@ -12,13 +12,13 @@ This function identifies bouts of physical activity using user-defined breakpoin
 \usage{
 markbouts(object, value, which = "counts", bts = c(0, 10, 20, Inf), rescale.epoch = 60,
 collapse.by = "\%Y-\%m-\%d", value.labels = NULL, bouts.labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = TRUE)
 \method{markbouts}{acclist}(object, value, which = "counts", bts = c(0, 10, 20, Inf), rescale.epoch = 60,
 collapse.by = "\%Y-\%m-\%d", value.labels = NULL, bouts.labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = TRUE)
 \method{markbouts}{accfile}(object, value, which = "counts", bts = c(0, 10, 20, Inf), rescale.epoch = 60,
 collapse.by = "\%Y-\%m-\%d", value.labels = NULL, bouts.labels = NULL,
-extreme = NULL, keep.error = FALSE)
+extreme = NULL, keep.error = FALSE, progbar = NULL)
 }
 
 \arguments{
@@ -52,6 +52,10 @@ labels for bouts duration catergories (\code{NULL} is recommended).
   \item{keep.error}{
 logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.
 }
+  \item{progbar}{
+logical flag. Should a progress bar be used? Available for Windows only. Argument not used for class \code{accfile}.
+}
+
 }
 \details{
 Breakpoints are specified as counts per seconds using \code{value}. If the epoch used for \code{value} is different from the accelerometer's epoch, a rescaling is applied. E.g., if epoch is 15 seconds and breakpoints are expressed as counts per 60 seconds, \code{value} is divided by 60/15 = 4. There can be \emph{n} physical activity modes at maximum, where \emph{n} is the length of \code{value}. 

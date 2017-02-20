@@ -11,11 +11,11 @@ citEntry(
   author = personList(as.person("M. Geraci")),
   year = year,
   note = vers,
-  url = "http://CRAN.R-project.org/package=pawacc",
+  url = "https://CRAN.R-project.org/package=pawacc",
   textVersion  = paste0("Geraci M (",
                      year,
                      "). pawacc: Physical activity with accelerometers. ",
-                     vers, ". Available at http://CRAN.R-project.org/package=pawacc", ".")
+                     vers, ". Available at https://CRAN.R-project.org/package=pawacc", ".")
 	)
 
 citEntry(

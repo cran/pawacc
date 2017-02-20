@@ -1,10 +1,26 @@
 exportPattern("^[^\\.]")
-import(SparseM)
+import("stats")
+importFrom("utils", "packageDescription")
+if(.Platform$OS.type == "windows"){
+	importFrom("utils", "setWinProgressBar", "winProgressBar")
+}
+importFrom("graphics", "plot.default")
+import("SparseM")
+
+S3method(collapse, accfile)
 
 S3method(markwear, accfile)
 S3method(markwear, acclist)
+
 S3method(markpa, accfile)
 S3method(markpa, acclist)
+
 S3method(markbouts, accfile)
 S3method(markbouts, acclist)
-S3method(collapse, accfile)
+
+S3method(plot, gt1m)
+S3method(plot, gt3x)
+
+S3method(print, accfile)
+S3method(print, acclist)
+

@@ -9,7 +9,7 @@ This function reads a list of Actigraph GT1M accelerometer files.
 }
 \usage{
 gt1mAccDir(accFileList, save, compress = "gzip",
-	compression_level = 6)
+	compression_level = 6, progbar = TRUE)
 }
 
 \arguments{
@@ -25,6 +25,10 @@ logical or character string specifying whether saving to a named file is to use 
   \item{compression_level}{
 integer: the level of compression to be used. See argument \code{compression_level} in \code{\link{save}}.
 }
+  \item{progbar}{
+logical flag. Should a progress bar be used? Available for Windows only.
+}
+
 }
 
 \value{
