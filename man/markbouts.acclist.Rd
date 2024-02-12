@@ -47,7 +47,7 @@ labels for physical activity modes.
 labels for bouts duration catergories (\code{NULL} is recommended).
 }
   \item{extreme}{
-%%   if \code{value} includes a threshold for defining the category of extreme values, this argument identifies such category among the physical activity modes defined by \code{value}. See details.
+if \code{value} includes a threshold for defining the category of extreme values, this argument identifies such category among the physical activity modes defined by \code{value}. See details.
 }
   \item{keep.error}{
 logical flag. If \code{FALSE} (default) data errors as identified by \code{\link{errorChk}} will be replaced by NAs.

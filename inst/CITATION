@@ -5,32 +5,32 @@ citHeader("To cite package", sQuote(meta$Package), "in publications use:")
 year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
 vers <- paste("R package version", meta$Version)
 
-citEntry(
-  entry = "Manual",
+bibentry(
+  bibtype = "Manual",
   title ="pawacc: {P}hysical activity with accelerometers",
-  author = personList(as.person("M. Geraci")),
+  author = person(given = "Marco", family = "Geraci"),
   year = year,
   note = vers,
-  url = "https://CRAN.R-project.org/package=pawacc",
+  url = "https://cran.r-project.org/package=pawacc",
   textVersion  = paste0("Geraci M (",
                      year,
                      "). pawacc: Physical activity with accelerometers. ",
-                     vers, ". Available at https://CRAN.R-project.org/package=pawacc", ".")
+                     vers, ". Available at https://cran.r-project.org/package=pawacc", ".")
 	)
 
-citEntry(
-  entry = "TechReport",
-  title ="Technical report on accelerometry data processing in the {M}illennium {C}ohort {S}tudy",
-  author = personList(as.person("M. Geraci"),as.person("C. Rich"),as.person("F. Sera"),as.person("M. Cortina-Borja"),as.person("L. J. Griffiths"),as.person("C. Dezateux")),
-  year = "2012",
-  address = "London, UK",
-  institution = "University College London",
-  url = "http://discovery.ucl.ac.uk/1361699",
-  textVersion  = paste0(
-  "Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012).",
-  "Technical report on accelerometry data processing in the Millennium Cohort Study.",
-  "London, UK: University College London. ",
-  "Available at http://discovery.ucl.ac.uk/1361699")
+bibentry(
+	bibtype = "TechReport",
+	title ="Technical report on accelerometry data processing in the {M}illennium {C}ohort {S}tudy",
+	author = c(person(given = "Marco", family = "Geraci"),person(given = "Carly", family = "Rich"),person(given = "Francesco", family = "Sera"),person(given = "Mario", family = "Cortina-Borja"),person(given = "Lucy J.", family = "Griffiths"),person(given = "Carol", family = "Dezateux")),
+	year = "2012",
+	address = "London, UK",
+	institution = "University College London",
+	url = "https://discovery.ucl.ac.uk/1361699",
+	textVersion  = paste0(
+	"Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012).",
+	"Technical report on accelerometry data processing in the Millennium Cohort Study.",
+	"London, UK: University College London. ",
+	"Available at https://discovery.ucl.ac.uk/1361699")
 )
 
 

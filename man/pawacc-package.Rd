@@ -12,21 +12,21 @@ This package provides processing and summary functions.
 \tabular{ll}{
 Package: \tab pawacc\cr
 Type: \tab Package\cr
-Version: \tab 1.2.2\cr
-Date: \tab 2017-02-20\cr
+Version: \tab 1.2.3\cr
+Date: \tab 2024-02-11\cr
 License: \tab GPL (>= 2)\cr
 LazyLoad: \tab yes\cr
 }
 }
 
 \references{
-Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012). Technical report on accelerometry data processing in the Millennium Cohort Study. London, UK: University College London. Available at \url{http://discovery.ucl.ac.uk/1361699}
+Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012). Technical report on accelerometry data processing in the Millennium Cohort Study. London, UK: University College London. Available at \url{https://discovery.ucl.ac.uk/1361699}
 }
 
 \author{
 Marco Geraci
 
-Maintainer: Marco Geraci <m.geraci@ucl.ac.uk>
+Maintainer: Marco Geraci <marco.geraci@uniroma1.it>
 }
 
 \keyword{ package }

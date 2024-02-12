@@ -1,11 +1,9 @@
 exportPattern("^[^\\.]")
 import("stats")
 importFrom("utils", "packageDescription")
-if(.Platform$OS.type == "windows"){
-	importFrom("utils", "setWinProgressBar", "winProgressBar")
-}
+importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 importFrom("graphics", "plot.default")
-import("SparseM")
+import(SparseM)
 
 S3method(collapse, accfile)
 

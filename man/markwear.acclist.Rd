@@ -52,7 +52,7 @@ The accelerometer epoch is assumed to be expressed in seconds. Therefore \code{v
 If \code{object} is of class \code{acclist}, a list of factors with two levels of the same length as the number of accelerometers files in \code{object}. If \code{object} is of class \code{accfile}, a single factor will be given. Levels are 'non-wear' and 'wear'.
 }
 \references{
-Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012). Technical report on accelerometry data processing in the Millennium Cohort Study. London, UK: University College London. Available at \url{http://discovery.ucl.ac.uk/1361699}
+Geraci M, Rich C, Sera F, Cortina-Borja M, Griffiths LJ, and Dezateux C (2012). Technical report on accelerometry data processing in the Millennium Cohort Study. London, UK: University College London. Available at \url{https://discovery.ucl.ac.uk/1361699}
 }
 
 \author{
