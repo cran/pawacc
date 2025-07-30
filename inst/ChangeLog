@@ -40,4 +40,15 @@ Version 1.2.2 (February 20, 2017)
 - Changed NAMESPACE to import undefined global functions
 - Other changes to comply with CRAN checks.
 
+=============================================
+
+Version 1.2.3 (February 11, 2024)
+
+- Changes to comply with CRAN checks.
+
+=============================================
+
+Version 1.2.4 (July 30, 2025)
+
+- CRAN request to add Rd cross-references.
 

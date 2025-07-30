@@ -12,8 +12,8 @@ This package provides processing and summary functions.
 \tabular{ll}{
 Package: \tab pawacc\cr
 Type: \tab Package\cr
-Version: \tab 1.2.3\cr
-Date: \tab 2024-02-11\cr
+Version: \tab 1.2.4\cr
+Date: \tab 2025-07-30\cr
 License: \tab GPL (>= 2)\cr
 LazyLoad: \tab yes\cr
 }

@@ -50,7 +50,7 @@ These functions return an object of two \code{\link{class}}es: \code{accfile} an
 
 An object of class \code{accfile} is a list containing the following components:
 
-\item{df}{A \code{\link{data.frame}} object with accelerometer values in columns \code{counts} and \code{steps} (if present), and coded error for each accelerometer data column. See \code{\link{errorChk}} for error codes. If \code{sparse = TRUE}, all variables of the data frame \code{df} are returned as vectors of a matrix in sparse format (see \code{\link{as.matrix.csr}} for details).}
+\item{df}{A \code{\link{data.frame}} object with accelerometer values in columns \code{counts} and \code{steps} (if present), and coded error for each accelerometer data column. See \code{\link{errorChk}} for error codes. If \code{sparse = TRUE}, all variables of the data frame \code{df} are returned as vectors of a matrix in sparse format (see \code{\link[SparseM]{as.matrix.csr}} for details).}
 \item{info}{A \code{\link{data.frame}} object with file identifier (\code{fileid}), device serial number (\code{serial}), number of recorded measurements (\code{nobs}), epoch (\code{epoch}), accelerometer mode (\code{mode}), start date and time (\code{ts_start}), time zone (\code{tz}), battery voltage (\code{voltage}), download date and time (\code{ts_dl}).}
 \item{error_summary}{A \code{\link{list}} object with file identifier (\code{fileid}), summary tables of error codes for each accelerometer data column, error code for date (\code{date}), and logical flag for odd number of measurements (\code{odd_number}) (see details).}
 }
